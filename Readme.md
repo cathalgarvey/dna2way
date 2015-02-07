@@ -1,8 +1,9 @@
-# DNA2Way - A hash function for DNA that generates same output for forward-bias or reverse complement.
+# DNA2Way
+## A hash function for DNA that generates same output for forward-bias or reverse complement.
 by Cathal Garvey; implementation is AGPL, concept is public domain. 
 Please let me know if this is useful, and I'd appreciate attribution.
 
-## Concept
+### Concept
 Hashing functions are handy for dealing with data; they let you see when
 you've seen a piece of data before without requiring you to compare painstakingly
 against everything you've got on record. By compressing data down to a small
@@ -28,8 +29,8 @@ we're streaming data.
 This is an imperfect attempt to solve that problem, and it's only a few hours
 old, so it surely has loads of room for improvement.
 
-## Design
-Goals:
+### Design
+#### Goals:
 
 * Our function must generate constant-size output that's reasonably well-distributed
   across bit-space for a range of possible inputs.
@@ -41,7 +42,7 @@ Goals:
 * Our function must generate the same output for a molecule whether in the forward or
   reverse direction.
 
-Limitations accepted in this version:
+#### Limitations accepted in this version:
 
 * This function currently expects that the length of the data to be hashed is known;
   this information is necessary to offset one of the streaming "windows" for digesting
@@ -53,8 +54,10 @@ Limitations accepted in this version:
   reading pattern in another language) to generate two simultaneous hashes in
   a stream-like manner.
 
-Future directions:
+#### Future directions:
 
+* Rewrite in Rust, Golang, or another efficient language. Python's fine but
+  a hash function should be fast.
 * In extremis, a function without knowledge of the final length of the sequence
   could generate many simultaneous digests according to the desired bit-length,
   and select the correct offset at the end when the length is finally known. This
@@ -62,7 +65,7 @@ Future directions:
   permit hashing of data without knowing data length in advance, which might have
   some advantages for hashing huge or non-locally-held data.
   
-## Function Operation
+### Function Operation
 1. Data is read into the function using a "window" that is twice the desired bit length.
 2. In each window, the DNA is represented as a number. The number is encoded by selecting
    either the forward or reverse bias of that windowed fragment of DNA according to which
@@ -82,5 +85,5 @@ Future directions:
    last chunk).
 5. The two numbers generated simultaneously in (4) are xored together to get the output.
    
-## Usage
+### Usage
 Jeese, I dunno. Ask a real bioinformatician.
