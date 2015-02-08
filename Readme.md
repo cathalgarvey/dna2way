@@ -3,6 +3,10 @@
 by Cathal Garvey; implementation is AGPL, concept is public domain. 
 Please let me know if this is useful, and I'd appreciate attribution.
 
+### Contains
+* A python module with simple tests when run as a script
+* A Go library with tests.
+
 ### Concept
 Hashing functions are handy for dealing with data; they let you see when
 you've seen a piece of data before without requiring you to compare painstakingly
@@ -56,8 +60,6 @@ old, so it surely has loads of room for improvement.
 
 #### Future directions:
 
-* Rewrite in Rust, Golang, or another efficient language. Python's fine but
-  a hash function should be fast.
 * In extremis, a function without knowledge of the final length of the sequence
   could generate many simultaneous digests according to the desired bit-length,
   and select the correct offset at the end when the length is finally known. This
