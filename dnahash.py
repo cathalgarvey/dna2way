@@ -12,13 +12,12 @@ def chunks(li, ch):
 
 def xorfold(num, bits):
     """
-    Takes a number of bit length bits and outputs one of half that bitlength
-    by xoring the upper half with the lower. This is used to avoid the bias
-    towards higher-value numbers introduced by the orientation canonicalisation
-    function.
+    Xors the lowest portion of num that is _bits_ in bitlength with the
+    immediately higher portion of num that is _bits_ in bitlength, after
+    bit-shifting the higher portion downwards by _bits_
     """
     assert bits % 2 == 0, "Input bits cannot be an odd number."
-    return (num>>bits) ^ (num & ((1<<bits)-1))
+    return ((num>>bits) & ((1<<bits)-1)) ^ (num & ((1<<bits)-1))
 
 def reverse_complement(seq):
     revseq = ''.join({"A":"T","C":"G","G":"C","T":"A"}[n] for n in seq[::-1])
@@ -44,7 +43,8 @@ def canonical_orientation_dna(seq, values={'A':0,'C':1,'G':2,'T':3}):
     return seq
 
 
-def numerify_DNA(seq, inputbits, values={'A':0,'C':1,'G':2,'T':3}):
+#def numerify_DNA(seq, inputbits, values={'A':0,'C':1,'G':2,'T':3}):
+def numerify_DNA(seq, outputbits, values={'A':0,'C':1,'G':2,'T':3}):
     """
     Canonicalise either forward or reverse using canonical_orientation_dna.
     Then, create a number by valuing and bit-shifting according to position,
@@ -66,7 +66,7 @@ def numerify_DNA(seq, inputbits, values={'A':0,'C':1,'G':2,'T':3}):
     num = 0
     for i,n in enumerate(reversed(seq)):
         num += values[n]<<i
-    xornum = xorfold(num, inputbits//2)
+    xornum = xorfold(num, outputbits)
     return xornum
 
 def hashDNA2(DNAseq, offset=0, bitlen = 64):
@@ -83,10 +83,10 @@ def hashDNA2(DNAseq, offset=0, bitlen = 64):
     #assert len(DNAseq) % bitlen == 0, "For testing we're assuming DNA lengths evenly factorisable by half bitlen."
     accum = (2**bitlen) - 1  # Full bitmap of bitlen. Should it be 0 instead?
     # Hash offset block, if any:
-    accum ^= numerify_DNA(DNAseq[:offset], bitlen*2)
+    accum ^= numerify_DNA(DNAseq[:offset], bitlen)
     for block in chunks(DNAseq[offset:], bitlen*2):
         # Order-sensitive.
-        block_value = numerify_DNA(block, bitlen*2)
+        block_value = numerify_DNA(block, bitlen)
         # Order-insensitive.
         accum ^= block_value
     return accum
@@ -97,8 +97,10 @@ def hashDNA(DNAseq, seq_length, bitlen = 64):
     at zero bytes and the other at an offset so that it "closes" on the
     final byte of DNAseq. These are xored to generate the final output.
     """
-    offset = seq_length % bitlen
     hash1 = hashDNA2(DNAseq, 0, bitlen)
+    offset = seq_length % bitlen
+    if offset == 0:
+        return hash1
     hash2 = hashDNA2(DNAseq, offset, bitlen)
     return hash1 ^ hash2
 
@@ -113,7 +115,7 @@ if __name__ == "__main__":
     hashDNA = hashDNA2
     seen = {}
     for i in range(1000):
-        testcase = randomDNA(random.randint(150,2000))
+        testcase = randomDNA(random.randint(150, 2000))
         h = hashDNA(testcase, len(testcase), test_bitlength)
         h2 = hashDNA(reverse_complement(testcase), len(testcase), test_bitlength)
         assert h == h2, "Hashes don't match in reverse for n={}: {} vs {} - for sequence: \n{}".format(i, h, h2, testcase)
